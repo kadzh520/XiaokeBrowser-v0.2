@@ -13,6 +13,7 @@ import os
 import urllib.parse
 import shutil
 import re
+from typing import cast
 #获取配置
 conf = ConfigParser()
 conf.read('config.ini') 
@@ -55,8 +56,8 @@ class MyFrame2(wx.Frame):
         self.SetIcon(self.icon)
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
     
-        self.SetMinSize((715, 412))
-        self.SetMaxSize((715, 412))
+        self.SetMinSize(wx.Size(715, 412))
+        self.SetMaxSize(wx.Size(715, 412))
 
         # 禁用最大化和最小化按钮
         self.SetWindowStyle(self.GetWindowStyle() & ~(wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX))
@@ -186,8 +187,7 @@ class MyFrame1 ( wx.Frame ):
 
         self.Centre( wx.BOTH )
 
-        page = nb.GetSelection()
-        tab = nb.GetPage(page)
+        tab = self.get_current_tab()
 
         self.m_button4.Bind( wx.EVT_BUTTON,self.load_url)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
@@ -217,6 +217,9 @@ class MyFrame1 ( wx.Frame ):
 
     def __del__( self ):
         pass
+    def get_current_tab(self):
+        page = nb.GetSelection()
+        return cast(Tab, nb.GetPage(page))
     def parse_url(self,url):
         url = str(url)
         if os.path.isfile(url):
@@ -228,8 +231,7 @@ class MyFrame1 ( wx.Frame ):
             return url
     def OnKeyDown(self, event):
         keycode = event.GetKeyCode()
-        page = nb.GetSelection()
-        tab = nb.GetPage(page)
+        tab = self.get_current_tab()
         url = tab.browser.GetCurrentURL()
         if keycode == wx.WXK_F11:
             global frame3_url
@@ -245,8 +247,7 @@ class MyFrame1 ( wx.Frame ):
         wx.GetApp().ExitMainLoop()
 
     def star_html(self,event):
-        page = nb.GetSelection()
-        tab = nb.GetPage(page)
+        tab = self.get_current_tab()
         url = tab.browser.GetCurrentURL()
         self.menu_id = wx.Window.NewControlId()
         menu_item = self.star_menu.Append(self.menu_id, url)
@@ -259,8 +260,7 @@ class MyFrame1 ( wx.Frame ):
             menu_item = self.history_menu.FindItemById(menu_id)
         if menu_item is not None:
             menu_item_label = menu_item.GetItemLabel()
-            page = nb.GetSelection()
-            tab = nb.GetPage(page)
+            tab = self.get_current_tab()
             tab.browser.LoadURL(menu_item_label)
         else:
             self.warning_message("程序发生了一次错误,错误码:0x01 请你马上到客户群进行反馈")
@@ -277,8 +277,7 @@ class MyFrame1 ( wx.Frame ):
         frame = MyFrame2(None)
         frame.Show()
     def update_history(self,event):
-        page = nb.GetSelection()
-        tab = nb.GetPage(page)
+        tab = self.get_current_tab()
         url = tab.browser.GetCurrentURL()
         self.menu_id = wx.Window.NewControlId()
         menu_item = self.history_menu.Append(self.menu_id, url)
@@ -292,8 +291,7 @@ class MyFrame1 ( wx.Frame ):
             filepath = dlg.GetPath()
         # 关闭对话框
         dlg.Destroy()
-        page = nb.GetSelection()
-        tab = nb.GetPage(page)
+        tab = self.get_current_tab()
         tab.browser.LoadURL(filepath)
     def save_file(self,event):
         filepath = self.m_searchCtrl2.GetValue()
@@ -308,8 +306,7 @@ class MyFrame1 ( wx.Frame ):
             shutil.copy(filepath, path)
         dlg.Destroy()
     def print_file(self,event):
-        page = nb.GetSelection()
-        tab = nb.GetPage(page)
+        tab = self.get_current_tab()
         tab.browser.Print()
     def warning_message(self,str):
         root = tk.Tk()
@@ -366,8 +363,7 @@ class MyFrame1 ( wx.Frame ):
         page = Tab(nb)
         nb.AddPage(page, "Loading...")
         nb.SetSelection(nb.GetPageIndex(page))
-        page = nb.GetSelection()
-        tab = nb.GetPage(page)
+        tab = self.get_current_tab()
         tab.browser.Bind(wx.html2.EVT_WEBVIEW_NEWWINDOW, self.on_link_clicked)
         tab.browser.Bind(wx.html2.EVT_WEBVIEW_LOADED, self.OnLoaded)
         tab.browser.Bind(wx.html2.EVT_WEBVIEW_TITLE_CHANGED, self.OnTitleChanged)
@@ -375,19 +371,16 @@ class MyFrame1 ( wx.Frame ):
         page = nb.GetSelection()
         nb.DeletePage(page)
     def reset_html(self,event):
-        page = nb.GetSelection()
-        tab = nb.GetPage(page)
+        tab = self.get_current_tab()
         tab.browser.Reload()
     def forward_html(self,event):
-        page = nb.GetSelection()
-        tab = nb.GetPage(page)
+        tab = self.get_current_tab()
         if tab.browser.CanGoForward():
             tab.browser.GoForward()
         else:
             pass
     def backward_html(self,event):
-        page = nb.GetSelection()
-        tab = nb.GetPage(page)
+        tab = self.get_current_tab()
         if tab.browser.CanGoBack():
             tab.browser.GoBack()
         else:
@@ -395,8 +388,7 @@ class MyFrame1 ( wx.Frame ):
     def on_link_clicked(self,event):
         self.new_html(None)
         url = event.GetURL()
-        page = nb.GetSelection()
-        tab = nb.GetPage(page)
+        tab = self.get_current_tab()
         tab.browser.LoadURL(url)
         self.m_searchCtrl2.SetValue(url)
         
@@ -408,8 +400,7 @@ class MyFrame1 ( wx.Frame ):
     def load_url(self,event):
         search_url = self.m_searchCtrl2.GetValue()  
         search_url = self.parse_url(search_url)
-        page = nb.GetSelection()
-        tab = nb.GetPage(page)
+        tab = self.get_current_tab()
         tab.browser.LoadURL(search_url)
         self.m_searchCtrl2.SetValue(search_url)
 
