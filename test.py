@@ -138,51 +138,49 @@ class MyFrame1 ( wx.Frame ):
 
         self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
-        bSizer2 = wx.BoxSizer( wx.VERTICAL )
+        main_sizer = wx.BoxSizer( wx.VERTICAL )
 
-        bSizer6 = wx.BoxSizer( wx.HORIZONTAL )
+        toolbar_sizer = wx.BoxSizer( wx.HORIZONTAL )
 
 
-        bSizer2.Add( bSizer6, 0, 0, 5 )
+        main_sizer.Add( toolbar_sizer, 0, 0, 5 )
 
-        bSizer7 = wx.BoxSizer( wx.HORIZONTAL )
+        search_bar_sizer = wx.BoxSizer( wx.HORIZONTAL )
 
         self.m_searchCtrl2 = wx.SearchCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_searchCtrl2.ShowSearchButton( True )
         self.m_searchCtrl2.ShowCancelButton( False )
-        bSizer7.Add( self.m_searchCtrl2, 1, wx.EXPAND|wx.TOP|wx.RIGHT|wx.LEFT, 5 )
+        search_bar_sizer.Add( self.m_searchCtrl2, 1, wx.EXPAND|wx.TOP|wx.RIGHT|wx.LEFT, 5 )
 
         self.m_button4 = wx.Button( self, wx.ID_ANY, u"搜索", wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer7.Add( self.m_button4, 0, wx.TOP|wx.RIGHT|wx.LEFT, 5 )
+        search_bar_sizer.Add( self.m_button4, 0, wx.TOP|wx.RIGHT|wx.LEFT, 5 )
 
 
-        bSizer2.Add( bSizer7, 0, wx.EXPAND|wx.BOTTOM, 5 )
-        global bSizer5
-        bSizer5 = wx.BoxSizer( wx.VERTICAL )
+        main_sizer.Add( search_bar_sizer, 0, wx.EXPAND|wx.BOTTOM, 5 )
+        self.tab_container_sizer = wx.BoxSizer( wx.VERTICAL )
 
 
-        bSizer2.Add( bSizer5, 1, wx.EXPAND, 5 )
+        main_sizer.Add( self.tab_container_sizer, 1, wx.EXPAND, 5 )
         
         #self.browser = wx.html2.WebView.New(self)
         #self.browser.LoadURL("https://www.baidu.com")
         self.m_searchCtrl2.SetValue("https://www.baidu.com")
-        #bSizer5.Add( self.browser, 1, wx.ALL|wx.EXPAND, 5 )
+        #self.tab_container_sizer.Add( self.browser, 1, wx.ALL|wx.EXPAND, 5 )
         # Panel creation and tab holder setup:
-        global nb
-        nb = wx.aui.AuiNotebook(self)
+        self.tab_notebook = wx.aui.AuiNotebook(self)
         # Initiation of the tab windows:
-        tab = Tab(nb)
+        tab = Tab(self.tab_notebook)
         
 
         # Assigning names to tabs and adding them:
-        nb.AddPage(tab, "Loading...")
-        #nb.AddPage()
+        self.tab_notebook.AddPage(tab, "Loading...")
+        #tab_notebook.AddPage()
 
         # Organizing notebook layout using a sizer:
-        bSizer5.Add(nb, 1, wx.EXPAND)
+        self.tab_container_sizer.Add(self.tab_notebook, 1, wx.EXPAND)
 
         
-        self.SetSizer( bSizer2 )
+        self.SetSizer( main_sizer )
         self.Layout()
 
         self.Centre( wx.BOTH )
@@ -218,8 +216,8 @@ class MyFrame1 ( wx.Frame ):
     def __del__( self ):
         pass
     def get_current_tab(self):
-        page = nb.GetSelection()
-        return cast(Tab, nb.GetPage(page))
+        page = self.tab_notebook.GetSelection()
+        return cast(Tab, self.tab_notebook.GetPage(page))
     def parse_url(self,url):
         url = str(url)
         if os.path.isfile(url):
@@ -234,19 +232,18 @@ class MyFrame1 ( wx.Frame ):
         tab = self.get_current_tab()
         url = tab.browser.GetCurrentURL()
         if keycode == wx.WXK_F11:
-            global frame3_url
-            frame3_url = url
+            self.frame3_url = url
             
-    def OnTimer(self,event):
-        count = nb.GetPageCount()
+    def OnTimer(self,_event):
+        count = self.tab_notebook.GetPageCount()
         if count == 0:
             self.Close()
             wx.GetApp().ExitMainLoop()
-    def OnClose(self,event):
+    def OnClose(self,_event):
         self.Close()
         wx.GetApp().ExitMainLoop()
 
-    def star_html(self,event):
+    def star_html(self,_event):
         tab = self.get_current_tab()
         url = tab.browser.GetCurrentURL()
         self.menu_id = wx.Window.NewControlId()
@@ -273,16 +270,16 @@ class MyFrame1 ( wx.Frame ):
             r'(?::\d+)?'  # 端口号（可选）
             r'(?:/?|[/?]\S+)$', re.IGNORECASE)
         return re.match(regex, string) is not None
-    def about_html(self,event):
+    def about_html(self,_event):
         frame = MyFrame2(None)
         frame.Show()
-    def update_history(self,event):
+    def update_history(self,_event):
         tab = self.get_current_tab()
         url = tab.browser.GetCurrentURL()
         self.menu_id = wx.Window.NewControlId()
         menu_item = self.history_menu.Append(self.menu_id, url)
         self.Bind(wx.EVT_MENU, self.open_url, menu_item)
-    def open_file(self,event):
+    def open_file(self,_event):
         # 创建一个带有标题和默认文件名的文件对话框
         dlg = wx.FileDialog(None, "选择文件", "", "", "*.*", wx.FD_OPEN)
 
@@ -293,7 +290,7 @@ class MyFrame1 ( wx.Frame ):
         dlg.Destroy()
         tab = self.get_current_tab()
         tab.browser.LoadURL(filepath)
-    def save_file(self,event):
+    def save_file(self,_event):
         filepath = self.m_searchCtrl2.GetValue()
         #判断是不是url
         if self.is_url(filepath):
@@ -305,7 +302,7 @@ class MyFrame1 ( wx.Frame ):
             path = dlg.GetPath()
             shutil.copy(filepath, path)
         dlg.Destroy()
-    def print_file(self,event):
+    def print_file(self,_event):
         tab = self.get_current_tab()
         tab.browser.Print()
     def warning_message(self,str):
@@ -319,7 +316,7 @@ class MyFrame1 ( wx.Frame ):
             root.destroy()
             os.execl(python, python, *sys.argv)
 
-    def IE_html(self,event):
+    def IE_html(self,_event):
         conf.set('Engine', 'Engine', 'IE')
 
         # 保存修改后的ini文件
@@ -328,7 +325,7 @@ class MyFrame1 ( wx.Frame ):
         self.warning_message("是否切换到IE引擎?")
 
 
-    def Chrome_html(self,event):
+    def Chrome_html(self,_event):
         conf.set('Engine', 'Engine', 'Default')
 
         # 保存修改后的ini文件
@@ -337,7 +334,7 @@ class MyFrame1 ( wx.Frame ):
         self.warning_message("是否切换到默认引擎?")
 
 
-    def WebKit_html(self,event):
+    def WebKit_html(self,_event):
         conf.set('Engine', 'Engine', 'WebKit')
 
         # 保存修改后的ini文件
@@ -346,7 +343,7 @@ class MyFrame1 ( wx.Frame ):
         self.warning_message("是否切换到WebKit引擎?")
 
 
-    def Edge_html(self,event):
+    def Edge_html(self,_event):
         conf.set('Engine', 'Engine', 'Edge')
 
         # 保存修改后的ini文件
@@ -357,29 +354,29 @@ class MyFrame1 ( wx.Frame ):
 
     def OnTitleChanged(self,event):
         title = event.GetString()
-        page = nb.GetSelection()
-        nb.SetPageText(page,title)
-    def new_html(self,event):
-        page = Tab(nb)
-        nb.AddPage(page, "Loading...")
-        nb.SetSelection(nb.GetPageIndex(page))
+        page = self.tab_notebook.GetSelection()
+        self.tab_notebook.SetPageText(page,title)
+    def new_html(self,_event):
+        page = Tab(self.tab_notebook)
+        self.tab_notebook.AddPage(page, "Loading...")
+        self.tab_notebook.SetSelection(self.tab_notebook.GetPageIndex(page))
         tab = self.get_current_tab()
         tab.browser.Bind(wx.html2.EVT_WEBVIEW_NEWWINDOW, self.on_link_clicked)
         tab.browser.Bind(wx.html2.EVT_WEBVIEW_LOADED, self.OnLoaded)
         tab.browser.Bind(wx.html2.EVT_WEBVIEW_TITLE_CHANGED, self.OnTitleChanged)
-    def close_html(self,event):
-        page = nb.GetSelection()
-        nb.DeletePage(page)
-    def reset_html(self,event):
+    def close_html(self,_event):
+        page = self.tab_notebook.GetSelection()
+        self.tab_notebook.DeletePage(page)
+    def reset_html(self,_event):
         tab = self.get_current_tab()
         tab.browser.Reload()
-    def forward_html(self,event):
+    def forward_html(self,_event):
         tab = self.get_current_tab()
         if tab.browser.CanGoForward():
             tab.browser.GoForward()
         else:
             pass
-    def backward_html(self,event):
+    def backward_html(self,_event):
         tab = self.get_current_tab()
         if tab.browser.CanGoBack():
             tab.browser.GoBack()
@@ -397,7 +394,7 @@ class MyFrame1 ( wx.Frame ):
         url = urllib.parse.unquote(url, 'utf-8')  # 解码URL
         self.m_searchCtrl2.SetValue(url)
         self.update_history(None)
-    def load_url(self,event):
+    def load_url(self,_event):
         search_url = self.m_searchCtrl2.GetValue()  
         search_url = self.parse_url(search_url)
         tab = self.get_current_tab()
@@ -408,4 +405,5 @@ app = wx.App(False)
 frame = MyFrame1(None)
 frame.Show()
 app.MainLoop()
+
 
