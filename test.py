@@ -157,29 +157,27 @@ class MyFrame1 ( wx.Frame ):
 
 
         main_sizer.Add( search_bar_sizer, 0, wx.EXPAND|wx.BOTTOM, 5 )
-        global tab_container_sizer
-        tab_container_sizer = wx.BoxSizer( wx.VERTICAL )
+        self.tab_container_sizer = wx.BoxSizer( wx.VERTICAL )
 
 
-        main_sizer.Add( tab_container_sizer, 1, wx.EXPAND, 5 )
+        main_sizer.Add( self.tab_container_sizer, 1, wx.EXPAND, 5 )
         
         #self.browser = wx.html2.WebView.New(self)
         #self.browser.LoadURL("https://www.baidu.com")
         self.m_searchCtrl2.SetValue("https://www.baidu.com")
-        #tab_container_sizer.Add( self.browser, 1, wx.ALL|wx.EXPAND, 5 )
+        #self.tab_container_sizer.Add( self.browser, 1, wx.ALL|wx.EXPAND, 5 )
         # Panel creation and tab holder setup:
-        global tab_notebook
-        tab_notebook = wx.aui.AuiNotebook(self)
+        self.tab_notebook = wx.aui.AuiNotebook(self)
         # Initiation of the tab windows:
-        tab = Tab(tab_notebook)
+        tab = Tab(self.tab_notebook)
         
 
         # Assigning names to tabs and adding them:
-        tab_notebook.AddPage(tab, "Loading...")
+        self.tab_notebook.AddPage(tab, "Loading...")
         #tab_notebook.AddPage()
 
         # Organizing notebook layout using a sizer:
-        tab_container_sizer.Add(tab_notebook, 1, wx.EXPAND)
+        self.tab_container_sizer.Add(self.tab_notebook, 1, wx.EXPAND)
 
         
         self.SetSizer( main_sizer )
@@ -218,8 +216,8 @@ class MyFrame1 ( wx.Frame ):
     def __del__( self ):
         pass
     def get_current_tab(self):
-        page = tab_notebook.GetSelection()
-        return cast(Tab, tab_notebook.GetPage(page))
+        page = self.tab_notebook.GetSelection()
+        return cast(Tab, self.tab_notebook.GetPage(page))
     def parse_url(self,url):
         url = str(url)
         if os.path.isfile(url):
@@ -234,11 +232,10 @@ class MyFrame1 ( wx.Frame ):
         tab = self.get_current_tab()
         url = tab.browser.GetCurrentURL()
         if keycode == wx.WXK_F11:
-            global frame3_url
-            frame3_url = url
+            self.frame3_url = url
             
     def OnTimer(self,_event):
-        count = tab_notebook.GetPageCount()
+        count = self.tab_notebook.GetPageCount()
         if count == 0:
             self.Close()
             wx.GetApp().ExitMainLoop()
@@ -357,19 +354,19 @@ class MyFrame1 ( wx.Frame ):
 
     def OnTitleChanged(self,event):
         title = event.GetString()
-        page = tab_notebook.GetSelection()
-        tab_notebook.SetPageText(page,title)
+        page = self.tab_notebook.GetSelection()
+        self.tab_notebook.SetPageText(page,title)
     def new_html(self,_event):
-        page = Tab(tab_notebook)
-        tab_notebook.AddPage(page, "Loading...")
-        tab_notebook.SetSelection(tab_notebook.GetPageIndex(page))
+        page = Tab(self.tab_notebook)
+        self.tab_notebook.AddPage(page, "Loading...")
+        self.tab_notebook.SetSelection(self.tab_notebook.GetPageIndex(page))
         tab = self.get_current_tab()
         tab.browser.Bind(wx.html2.EVT_WEBVIEW_NEWWINDOW, self.on_link_clicked)
         tab.browser.Bind(wx.html2.EVT_WEBVIEW_LOADED, self.OnLoaded)
         tab.browser.Bind(wx.html2.EVT_WEBVIEW_TITLE_CHANGED, self.OnTitleChanged)
     def close_html(self,_event):
-        page = tab_notebook.GetSelection()
-        tab_notebook.DeletePage(page)
+        page = self.tab_notebook.GetSelection()
+        self.tab_notebook.DeletePage(page)
     def reset_html(self,_event):
         tab = self.get_current_tab()
         tab.browser.Reload()
@@ -408,4 +405,5 @@ app = wx.App(False)
 frame = MyFrame1(None)
 frame.Show()
 app.MainLoop()
+
 
